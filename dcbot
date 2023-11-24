@@ -1,0 +1,117 @@
+# 1170717910218592286 client
+# MTE3MDcxNzkxMDIxODU5MjI4Ng.G3dzrL.utHw0Wm7vVsNBdo8Cm9jwST5PZgVydyAjScG_I token
+# 8
+
+import discord
+import youtube_dl
+import asyncio
+from discord.ext import commands
+from discord.ext.commands import Bot
+from discord.utils import get
+from discord import FFmpegPCMAudio
+from youtube_dl import YoutubeDL
+from functools import partial
+from datetime import datetime, timedelta
+import itertools
+intents = discord.Intents.all()
+
+
+intents.message_content = True
+bot = commands.Bot(command_prefix = "-", intents=discord.Intents.all(),help_command=None)
+
+
+
+client = discord.Client(intents=discord.Intents.all())
+
+
+#wrapper / decorator
+
+@bot.event
+async def on_ready():
+    print(f"Logged in as {bot.user}")
+
+
+
+@bot.command()
+async def leave(ctx):
+    await ctx.voice_client.disconnect()
+
+#Help command
+@bot.command()
+async def join(ctx):
+     channel = ctx.author.voice.channel
+     voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+     if voice_client == None:
+          ctx.channel.send("Joined")
+          await channel.connect()
+          voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+#Play command
+@bot.command()
+async def play(ctx, url):
+    channel = ctx.author.voice.channel
+    voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+    if voice_client == None:
+        ctx.channel.send("Joined")
+        await channel.connect()
+        voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+    YDL_OPTIONS = {'format' : 'bestaudio', 'noplaylist' : 'True'}
+    FFMPEG_OPTIONS = {'before_options': '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5', 'options': '-vn'}
+
+    if not voice_client.is_playing():
+        with YoutubeDL(YDL_OPTIONS) as ydl:
+            info = ydl.extract_info(url, download=False)
+        URL = info['formats'][0]['url']
+        voice_client.play(discord.FFmpegPCMAudio(URL, **FFMPEG_OPTIONS))
+        voice_client.is_playing()
+    else :
+        await ctx.channel.send("Already playing song")
+        return
+
+#Stop command
+@bot.command()
+async def stop(ctx):
+    voice_client = get(bot.voice_clients, guild=ctx.guild)
+    if voice_client == None:
+        await ctx.channel.send("Bot is not connect to vc")
+        return
+    
+    if voice_client.channel != ctx.author.voice.channel:
+        await ctx.channel.send("The bot is  currently connected to {0}",format(voice_client.channel))
+        return
+    
+    voice_client.stop()
+
+#Help command
+@bot.command()
+async def help(ctx):
+     emBed = discord.Embed(title="**Commands Lists**", description="All Rastaboii Commands!", color=0x36FF00)
+     emBed.add_field(name="-play (youtube url)", value="เพื่อเล่นเพลง", inline=False)
+     emBed.add_field(name="-stop", value="เพื่อเป็นการหยุดเพลง", inline=False)
+     emBed.add_field(name="-leave", value="เพื่อให้บอทออกจากVC", inline=False)
+     emBed.add_field(name="-skip", value="เพื่อข้ามเพลง", inline=False)
+     await ctx.send(embed=emBed)
+
+#Skip command
+@bot.command()
+async def skip(ctx):
+   voice_client = get(bot.voice_clients, guild=ctx.guild)
+
+   if voice_client == None or not voice_client.is_connected():
+            await ctx.channel.send("Bot is not connected to vc", delete_after=10)
+            return
+   if voice_client.is_paused():
+            pass
+   elif not voice_client.is_playing():
+            return
+
+   voice_client.stop()
+   await ctx.send(f'**`{ctx.author}`**: Skipped the song!')
+
+
+
+        
+bot.run('MTE3MDcxNzkxMDIxODU5MjI4Ng.G3dzrL.utHw0Wm7vVsNBdo8Cm9jwST5PZgVydyAjScG_I')
