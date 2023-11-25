@@ -1,7 +1,3 @@
-# 1170717910218592286 client
-# MTE3MDcxNzkxMDIxODU5MjI4Ng.G3dzrL.utHw0Wm7vVsNBdo8Cm9jwST5PZgVydyAjScG_I token
-# 8
-
 import discord
 import youtube_dl
 import asyncio
@@ -114,4 +110,4 @@ async def skip(ctx):
 
 
         
-bot.run('MTE3MDcxNzkxMDIxODU5MjI4Ng.G3dzrL.utHw0Wm7vVsNBdo8Cm9jwST5PZgVydyAjScG_I')
+bot.run('Token')
